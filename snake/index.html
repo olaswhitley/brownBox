@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Snake</title>
+    <style>
+        body {
+            margin: 0px;
+            padding: 0px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgb(189,154,122);
+            overflow: hidden; /* hide scrollbars */
+            font-family: Impact,Haettenschweiler,Franklin Gothic Bold,Charcoal,Helvetica Inserat,Bitstream Vera Sans Bold,Arial Black,sans serif; 
+
+        }
+
+        #gameArea {
+            border: 15px solid black;
+        }
+
+        #parent-container {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        #top-text-container {
+            display:flex;
+            padding-top: 20px;
+            justify-content: space-between;
+        }
+
+        #score-container {
+            display: flex;
+            width: 70px;
+            margin-bottom: 3px;
+            justify-content: space-between;
+        }
+
+        #gameOver {
+            display: flex;
+            margin: 0;
+            padding: 0;
+            align-content: flex-start;
+        }
+
+        .child-element {
+            display: flex;
+            margin: 0;
+            padding: 0;
+            align-items: flex-end;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="parent-container">
+        <div id="top-text-container">
+            <h1 class="child-element">Snake</h1>
+            <div id="score-container">
+                <h4 class="child-element">Score:</h4>
+                <h4 id="score" class="child-element"></h4>
+            </div>
+        </div>
+        <div>
+            <canvas id="gameArea" width="400" height="400"></canvas>
+        </div>
+
+        <h1 id="gameOver"></h1>
+    </div>
+
+    <script src="index.js"></script>
+</body>
+</html>
