@@ -1,6 +1,7 @@
 import Player from "./Player.js";
 import Ground from "./Ground.js";
 import CactiController from "./CactiController.js";
+import Score from "./Score.js";
 
 const canvas = document.getElementById("gameArea");
 const ctx = canvas.getContext("2d");
@@ -29,10 +30,14 @@ const CACTI_CONFIG = [
 let player = null;
 let ground = null;
 let cactiController = null;
+let score = null;
 
 let scaleRatio = null;
 let previousTime = null;
 let gameSpeed = GAME_SPEED_START;
+let gameOver = false;
+let hasAddedEventListenersForRestart = false;
+let waitingToStart = true;
 
 function createSprites() {
     const playerWidthInGame = PLAYER_WIDTH * scaleRatio;
@@ -57,6 +62,8 @@ function createSprites() {
     });
 
     cactiController = new CactiController (ctx, cactiImages, scaleRatio, GROUND_AND_CACTUS_SPEED);
+
+    score = new Score(ctx, scaleRatio);
 }
 
 function setScreen() {
@@ -88,12 +95,55 @@ function getScaleRatio() {
     }
 }
 
+function showGameOver() {
+    const fontSize = 70 * scaleRatio;
+    ctx.font = `${fontSize}px Impact`;
+    ctx.fillStyle = "black";
+    const x = canvas.width / 3.3;
+    const y = canvas.height / 2;
+    ctx.fillText('Game Over', x, y);
+}
+
+function setupGameReset() {
+    if (!hasAddedEventListenersForRestart) {
+        hasAddedEventListenersForRestart = true;
+
+        setTimeout(() => {
+            window.addEventListener('keyup', reset, {once: true});
+        }, 1000);
+    }
+}
+
+function reset() {
+    hasAddedEventListenersForRestart = false;
+    gameOver = false;
+    waitingToStart = false;
+    ground.reset();
+    cactiController.reset();
+    score.reset();
+    gameSpeed = GAME_SPEED_START;
+}
+
+function showStartGameText() {
+    const fontSize = 40 * scaleRatio;
+    ctx.font = `${fontSize}px Impact`;
+    ctx.fillStyle = 'black';
+    const x = canvas.width / 3.55;
+    const y = canvas.height / 2;
+    ctx.fillText('Press Space To Start', x, y);
+}
+
+function updateGameSpeed(frameTimeDelta) {
+    gameSpeed += frameTimeDelta * GAME_SPEED_INCREMENT;
+}
+
 function clearScreen() {
     ctx.fillStyle = "rgb(189,154,122)";
     ctx.fillRect(0,0, canvas.width, canvas.height);
 }
 
 function gameLoop(currentTime) {
+    console.log(gameSpeed);
     if(previousTime === null) {
         previousTime = currentTime;
         requestAnimationFrame(gameLoop);
@@ -101,20 +151,41 @@ function gameLoop(currentTime) {
     }
     const frameTimeDelta = currentTime - previousTime;
     previousTime = currentTime;
-    console.log(frameTimeDelta);
+
     clearScreen();
 
-    // Update game objects
-    ground.update(gameSpeed, frameTimeDelta);
-    cactiController.update(gameSpeed, frameTimeDelta);
-    player.update(gameSpeed, frameTimeDelta);
+    if (!gameOver && !waitingToStart) {
+        // Update game objects
+        ground.update(gameSpeed, frameTimeDelta);
+        cactiController.update(gameSpeed, frameTimeDelta);
+        player.update(gameSpeed, frameTimeDelta);
+        score.update(frameTimeDelta);
+        updateGameSpeed(frameTimeDelta);
+    }
+
+    if (!gameOver && cactiController.collideWith(player)) {
+        gameOver = true;
+        setupGameReset();
+        score.setHighScore();
+    }
 
     // Draw game objects
     ground.draw();
     cactiController.draw();
     player.draw();
+    score.draw();
+
+    if (gameOver) {
+        showGameOver();
+    }
+
+    if (waitingToStart) {
+        showStartGameText();
+    }
     
     requestAnimationFrame(gameLoop);
 }
 
 requestAnimationFrame(gameLoop);
+
+window.addEventListener('keyup', reset, {once: true});
